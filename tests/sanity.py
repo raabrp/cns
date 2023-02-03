@@ -9,8 +9,8 @@ import matplotlib as mpl
 from matplotlib import patches
 import matplotlib.pyplot as plt
 
-from cns import init_params, mean_from_params, cov_from_params
-from cns import sample_from_gaussian, gaussian_pdf
+from cns.cns import init_params, mean_from_params, cov_from_params
+from cns.cns import sample_from_gaussian, gaussian_pdf
 
 mpl.rcParams.update(
     {
