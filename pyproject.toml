@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "cns"
+version = "0.1.0"
+description = "Conjugate Natural Selection"
+authors = ["Anonymized"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.11"
+tqdm = "^4.64.1"
+jax = "^0.4.2"
+matplotlib = "^3.6.3"
+numpy = "^1.24.1"
+jaxlib = "^0.4.2"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.9.0"
+pre-commit = "^3.0.4"
+
+[tool.poetry.scripts]
+test = 'scripts:test'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
