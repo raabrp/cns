@@ -1,7 +1,7 @@
 # Conjugate Natural Selection
 
 This code contains examples for natural gradient descent in a parameter space of
-Gaussian distributions over $\mathbbf{R}^2$. 
+Gaussian distributions over $\mathbb{R}^2$. 
 
 It accompanies a paper by the same name submitted to
 [COLT](https://www.learningtheory.org/colt2023/).
