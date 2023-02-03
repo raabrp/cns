@@ -12,7 +12,7 @@ where
 $$\pi = \mathcal{N}(\mu(\theta), \Sigma(\theta))$$
 
 Parameterization:
-$$\theta = \bigg[\mu_x, \mu_y, \sqrt{|\Sigma_{xx}|}, \Sigma_{xy}, \sqrt{|\Sigma_{yy}|}\bigg]$$
+$$\theta = \bigg[\mu_x, \mu_y, \sqrt{\Sigma_{xx}}, \Sigma_{xy}, \sqrt{\Sigma_{yy}}\bigg]$$
 
 
 Inverse Fisher Matrix for parameterization:
