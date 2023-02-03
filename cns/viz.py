@@ -29,7 +29,7 @@ class Video:
             ax.cla()
     """
 
-    def __init__(self, title, fig, fps=10):
+    def __init__(self, title, fig, fps=15):
         self.video_file = title + ".mp4"
 
         # ffmpeg backend
@@ -60,7 +60,7 @@ class MockVideo:
     Render each frame with plt.show instead
     """
 
-    def __init__(self, title, fig, fps=10):
+    def __init__(self, title, fig, fps=None):
         self.fig = fig
 
     def __enter__(self):
@@ -74,17 +74,21 @@ class MockVideo:
         self.writer.finish()
 
 
-def render_loss_function(ax, func, res=512):
+def render_loss_function(ax, func, center=(0, 0), width=4, height=4, res=512):
     # render pdf on ax
 
-    X = np.linspace(-2, 2, res)
-    Y = np.linspace(-2, 2, res)
+    left = center[0] - width / 2
+    right = center[0] + width / 2
+    bottom = center[1] - width / 2
+    top = center[1] + width / 2
+    X = np.linspace(left, right, res)
+    Y = np.linspace(bottom, top, res)
     xx, yy = np.meshgrid(X, Y)
     z = np.array(list(zip(xx.flatten(), yy.flatten())))
     f = func(z)
     zz = f.reshape((res, res))
 
-    img = ax.imshow(zz, extent=(-2, 2, -2, 2))
+    img = ax.imshow(zz, extent=(left, right, bottom, top), cmap="bone")
     contour = ax.contour(xx, yy, zz, alpha=0.2, colors=["w"])
 
     return img, contour
@@ -100,8 +104,24 @@ def render_pdf(ax, params, res=30):
     std_val = np.sqrt(eig_val)
 
     deg = np.arctan2(eig_vec[0][1], eig_vec[0][0]) * 180 / np.pi
-    e1 = patches.Ellipse(mean, *(std_val * 2.0), angle=-deg, fill=False)
-    e2 = patches.Ellipse(mean, *(std_val * 4.0), angle=-deg, fill=False)
+    e1 = patches.Ellipse(
+        mean,
+        *(std_val * 2.0),
+        angle=-deg,
+        facecolor="w",
+        edgecolor="k",
+        fill=True,
+        alpha=0.3
+    )
+    e2 = patches.Ellipse(
+        mean,
+        *(std_val * 4.0),
+        angle=-deg,
+        facecolor="w",
+        edgecolor="k",
+        fill=True,
+        alpha=0.3
+    )
 
     ax.add_patch(e1)
     ax.add_patch(e2)
@@ -129,6 +149,6 @@ def render_samples(ax, samples):
 
     x = samples[:, 0]
     y = samples[:, 1]
-    scatter = ax.scatter(x, y, s=2, color="w", alpha=0.5)
+    scatter = ax.scatter(x, y, s=40, color="white", edgecolors="black", alpha=0.9)
 
     return scatter

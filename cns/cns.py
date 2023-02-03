@@ -57,7 +57,9 @@ def measure_loss(key, x, noise=0):
     """
     key, subkey = jax.random.split(key)
 
-    losses = vectorized_loss(x)
+    noises = jax.random.normal(subkey, (x.shape[0],)) * noise
+
+    losses = vectorized_loss(x) + noises
 
     return key, losses
 
@@ -65,7 +67,7 @@ def measure_loss(key, x, noise=0):
 # Parameterization #############################################################
 
 
-def init_params(seed):
+def init_params(seed, params=None):
     """
     Randomly initialize parameters for a 2d gaussian distribution
 
@@ -82,15 +84,16 @@ def init_params(seed):
 
     key = jax.random.PRNGKey(seed)
     k = jax.random.split(key, 6)
-
     key = k[0]
-    mu_x = jax.random.uniform(k[1], minval=-0.5, maxval=0.5)
-    mu_y = jax.random.uniform(k[2], minval=-0.5, maxval=0.5)
-    sqrt_sigma_xx = jax.random.uniform(k[3], minval=0.0, maxval=1.0)
-    sigma_xy = jax.random.uniform(k[4], minval=-0.5, maxval=0.5)
-    sqrt_sigma_yy = jax.random.uniform(k[5], minval=0.0, maxval=1.0)
 
-    params = jnp.array([mu_x, mu_y, sqrt_sigma_xx, sigma_xy, sqrt_sigma_yy])
+    if params is None:
+        mu_x = jax.random.uniform(k[1], minval=-0.5, maxval=0.5)
+        mu_y = jax.random.uniform(k[2], minval=-0.5, maxval=0.5)
+        sqrt_sigma_xx = jax.random.uniform(k[3], minval=0.0, maxval=1.0)
+        sigma_xy = jax.random.uniform(k[4], minval=-0.5, maxval=0.5)
+        sqrt_sigma_yy = jax.random.uniform(k[5], minval=0.0, maxval=1.0)
+
+        params = jnp.array([mu_x, mu_y, sqrt_sigma_xx, sigma_xy, sqrt_sigma_yy])
 
     cov = cov_from_params(params)
 
