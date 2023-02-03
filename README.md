@@ -78,17 +78,10 @@ This repository is set up for tight version-control management with
 
 ## Development Environment
 
-First, use the right python version
+Use the right python version and install the dependencies
 ```
 pyenv local 3.11.0
 poetry env use 3.11.0
-```
-
-Record the path to the virtual environment that was created: e.g.,
-`ENVPATH=/home/USER/.cache/pypoetry/virtualenvs/cns-XXXXXXXX-py3.11`
-
-Install the documented dependencies to the virtual environment
-```
 poetry install
 ```
 
@@ -105,7 +98,6 @@ pre-commit uninstall
 
 The environment can be activated / deactivated with:
 * `poetry shell` /  `exit` within the shell
-* `$ENVPATH/bin/activate` / `deactivate`
 * [direnv](https://direnv.net/)
 
 I use the last option. First, ensure it's setup up correctly 
