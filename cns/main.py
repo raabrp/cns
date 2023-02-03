@@ -56,8 +56,8 @@ def main():
                 & (samples[:, 0] < center[0] + width / 2)
                 & (samples[:, 0] < center[1] + height / 2)
             ]
-            scatter = render_samples(left, visible_samples)
             e1, e2 = render_pdf(left, params)
+            scatter = render_samples(left, visible_samples)
 
             # plot loss on right axes
             key, losses = measure_loss(key, samples)
