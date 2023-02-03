@@ -167,7 +167,7 @@ def analytic_inv_fisher(params):
 
     z = grad_cov_from_params(params)
 
-    inv_v = (
+    inv_A = (
         einsum(
             "im,ij,ajk,kl,blm->ab",
             jnp.eye(2),  # delta for trace
@@ -179,7 +179,7 @@ def analytic_inv_fisher(params):
         / 2
     )
 
-    return block_diag(sigma_xx, sigma_yy, inv(inv_v))
+    return block_diag(sigma_xx, sigma_yy, inv(inv_A))
 
 
 # PDF / Sampling ###############################################################

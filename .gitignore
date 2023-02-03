@@ -1,0 +1,18 @@
+# Ignore all files by default
+*
+
+# Except the white list
+!/cns
+!/cns/**.py
+!/tests
+!/tests/**.py
+!.envrc
+!.gitignore
+!.pre-commit-config.yaml
+!.pyproject.toml
+!.python-version
+!README.md
+!poetry.lock
+!pyproject.toml
+!requirements.txt
+!scripts.py
