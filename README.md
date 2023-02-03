@@ -72,6 +72,10 @@ Install tools for development
 ```
 pre-commit install
 ```
+If they cause too many issue, uninstall with
+```
+pre-commit uninstall
+```
 
 ## Environment Activation
 
