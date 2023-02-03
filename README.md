@@ -17,11 +17,11 @@ $$\theta = \bigg[\mu_x, \mu_y, \sqrt{|\Sigma_{xx}|}, \Sigma_{xy}, \sqrt{|\Sigma_
 
 Inverse Fisher Matrix for parameterization:
 
-$$ \mathcal{I}^{-1}(\theta) = \begin{bmatrix} \Sigma_{xx} & 0 & 0 \\ 0 & \Sigma_{yy} & 0 \\ 0 & 0 & A \end{bmatrix} \quad \text{where} \quad [A^{-1}]_{ij} = \frac{1}{2} Tr\bigg( \Sigma^{-1} B[i] \Sigma^{-1}  B[j] \bigg) $$
+$$ \mathcal{I}^{-1}(\theta) = \begin{bmatrix} \Sigma_{xx} & 0 & 0 \\ 0 & \Sigma_{yy} & 0 \\ 0 & 0 & A \end{bmatrix} \quad \text{where} \quad [A^{-1}]_{ij} = \frac{1}{2} Tr \bigg( \Sigma^{-1} B[i] \Sigma^{-1}  B[j] \bigg) $$
 
 and
 
-$$ B[1] = \begin{bmatrix} 2 \sqrt{\Sigma_{xx}} & 0 \\ 0 & 0 \end{bmatrix} \quad B[2] = h\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} \quad B[3] = \begin{bmatrix} 0 & 0 \\ 0 & 2 \sqrt{\Sigma_{yy}} \end{bmatrix} $$
+$$ B[1] = \begin{bmatrix} 2 \sqrt{\Sigma_{xx}} & 0 \\ 0 & 0 \end{bmatrix} \quad B[2] = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} \quad B[3] = \begin{bmatrix} 0 & 0 \\ 0 & 2 \sqrt{\Sigma_{yy}} \end{bmatrix} $$
 
 Gradient estimate:
 $$\hat{\nabla} \mathcal{L}(\theta) = \sum_i L(x_i) \log \pi(x_i)$$
