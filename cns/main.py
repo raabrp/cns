@@ -15,7 +15,7 @@ def main():
     title = "proof_of_concept"
     seed = 0
     N_iters = 80
-    save_frames = [1, 20, 50]
+    save_frames = [0, 20, 50]
     center = (0, 0)
     width = 6
     height = 6
@@ -97,7 +97,7 @@ def main():
             for obj in [e1, e2, scatter]:
                 obj.remove()
 
-            key, params = update_params(key, params, samples, learning_rate=0.02)
+            key, params = update_params(key, params, samples, learning_rate=0.04)
 
     extent = right.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(f"{title}_loss.pdf", bbox_inches=extent.expanded(1.1, 1.2))
