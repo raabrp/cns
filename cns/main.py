@@ -3,8 +3,6 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-from matplotlib.patches import Polygon
 from tqdm import tqdm
 
 from cns import vectorized_loss, init_params, update_params
@@ -21,7 +19,7 @@ def main():
     center = (0, 0)
     width = 6
     height = 6
-    params = np.array([-1.5, -1.5, 0.5, 0.0, 0.5])  # set to None for random
+    params = np.array([-1.5, -1.5, -2.0, 0.0, -2.0])  # set to None for random
 
     key, params = init_params(seed, params=params)
 
@@ -94,7 +92,6 @@ def main():
                     fig.dpi_scale_trans.inverted()
                 )
                 fig.savefig(f"{title}_{i}.png", bbox_inches=extent.expanded(1.0, 1.0))
-                pass
 
             # clear nonpersistent objects on left image
             for obj in [e1, e2, scatter]:
