@@ -30,9 +30,12 @@ def loss_function(s):
 
     # Ackley function
 
-    a = -20 * exp(-0.2 * sqrt(0.5 * (x**2 + y**2)))
-    b = -exp(0.5 * cos(2 * pi * x) + cos(2 * pi * y)) + e + 20
-    return a + b
+    # a = -20 * exp(-0.2 * sqrt(0.5 * (x**2 + y**2)))
+    # b = -exp(0.5 * (cos(2 * pi * x) + cos(2 * pi * y))) + e + 20
+    # return a + b
+
+    # Rastrigin in 2D
+    return 10 * 2 + x**2 + y**2 - 10 * cos(2 * pi * x) - 10 * cos(2 * pi * y)
 
 
 vectorized_loss = jax.vmap(loss_function)
@@ -306,7 +309,6 @@ def update_params(key, params, samples, learning_rate):
     # covariant_derivative = gradient_estimate
 
     new_params = params - covariant_derivative * learning_rate
-
     return key, new_params
 
 

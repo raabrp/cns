@@ -14,12 +14,19 @@ from viz import Video
 def main():
     title = "proof_of_concept"
     seed = 0
-    N_iters = 80
+
+    N_iters = 100
     save_frames = [0, 20, 50]
+    num_samples = 40
+    learning_rate = 0.001
+    noise = 0
+
+    # image
     center = (0, 0)
-    width = 6
-    height = 6
-    params = np.array([-1.5, -1.5, -2.0, 0.0, -2.0])  # set to None for random
+    width = 12
+    height = 12
+
+    params = np.array([-1.5, -1.5, 1.0, 0.0, 1.0])  # set to None for random
 
     key, params = init_params(seed, params=params)
 
@@ -37,6 +44,8 @@ def main():
     cmap = matplotlib.cm.get_cmap("bone")
 
     # setup right plot
+    prev_max = None
+    prev_min = None
     prev_loss = None
     prev_std = None
 
@@ -45,7 +54,7 @@ def main():
 
     with Video(title, fig) as video:
         for i in tqdm(range(N_iters)):
-            key, samples = sample_from_gaussian(key, params, num_samples=5)
+            key, samples = sample_from_gaussian(key, params, num_samples=num_samples)
 
             # plot samples and pdf on left axes
             visible_samples = samples[
@@ -58,15 +67,17 @@ def main():
             scatter = render_samples(left, visible_samples)
 
             # plot loss on right axes
-            key, losses = measure_loss(key, samples)
+            key, losses = measure_loss(key, samples, noise=noise)
             loss = np.mean(losses)
-            std = np.std(losses)
+            l_min = np.min(losses)
+            l_max = np.max(losses)
+            l_std = np.std(losses)
 
             if i > 0:
                 right.fill_between(
                     (i, i + 1),
-                    (prev_loss - prev_std, loss - std),
-                    y2=(prev_loss + prev_std, loss + std),
+                    (prev_loss - prev_std, loss - l_std),
+                    y2=(prev_loss + prev_std, loss + l_std),
                     alpha=0.5,
                     color=cmap(norm((loss + prev_loss) / 2)),
                     linewidth=0,
@@ -78,8 +89,22 @@ def main():
                     color=cmap(norm((loss + prev_loss) / 2)),
                 )
 
+                right.plot(
+                    (i, i + 1),
+                    (prev_max, l_max),
+                    color=cmap(norm((l_max + prev_max) / 2)),
+                )
+
+                right.plot(
+                    (i, i + 1),
+                    (prev_min, l_min),
+                    color=cmap(norm((l_min + prev_min) / 2)),
+                )
+
+            prev_min = l_min
+            prev_max = l_max
             prev_loss = loss
-            prev_std = std
+            prev_std = l_std
 
             right.set_xlim(1, N_iters)
             right.set_ylim(min_loss, max_loss)
@@ -97,7 +122,9 @@ def main():
             for obj in [e1, e2, scatter]:
                 obj.remove()
 
-            key, params = update_params(key, params, samples, learning_rate=0.04)
+            key, params = update_params(
+                key, params, samples, learning_rate=learning_rate
+            )
 
     extent = right.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     fig.savefig(f"{title}_loss.pdf", bbox_inches=extent.expanded(1.1, 1.2))
