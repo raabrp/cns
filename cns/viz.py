@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import patches
-from matplotlib.transforms import Bbox, TransformedBbox
 
 from cns import mean_from_params, cov_from_params
 
