@@ -7,7 +7,6 @@ from jax.numpy import pi, sqrt, exp, log, cos, einsum
 from tqdm import tqdm
 
 from viz import render_heterogeneous_time_series
-from cns import gaussian_pdf_single
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -272,8 +271,6 @@ def main():
         init_log_sigma_over_log_sigma=0.0,
         learning_rate=learning_rate,
     )
-
-    # hist_mean_over_log_sigma = hist_mean_over_log_sigma - 0.5
 
     data = np.concatenate([observations, sigma])
 
