@@ -9,8 +9,20 @@ from tqdm import tqdm
 from viz import render_heterogeneous_time_series
 from cns import gaussian_pdf_single
 
-
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+
+
+mpl.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.serif": "Nimbus Roman",
+        "mathtext.fontset": "cm",
+        "mathtext.rm": "serif",
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
+    }
+)
 
 
 def walk_brownian(var, seed=0, p=0.3):
@@ -229,8 +241,9 @@ def main():
     time_window = 1024
     obs_prob = 0.5
 
-    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
-    left, center, right = axs
+    figl, left = plt.subplots(1, 1, figsize=(6, 6))
+    figc, center = plt.subplots(1, 1, figsize=(6, 6))
+    figr, right = plt.subplots(1, 1, figsize=(6, 6))
 
     # LEFT PLOT IS FOR W SPACE
     # CENTER PLOT IS FOR DELTA W / sqrt(DELTA T) SPACE
@@ -238,32 +251,43 @@ def main():
 
     # the real value for the target parameter (std) in time
     # generate variance as function of time
-    var = cos(np.arange(time_window - 1) / (time_window - 1) * pi) ** 2
-    sigma = sqrt(var)
+    log_sigma = cos(np.arange(time_window - 1) / (time_window - 1) * pi) ** 2
+    sigma = exp(log_sigma)
+    var = sigma**2
 
-    learning_rate = 0.003
+    learning_rate = 0.001
 
     # target is std of brownian motion
     # use variance
     W, t = walk_brownian(var, seed=seed, p=obs_prob)
     render_heterogeneous_time_series(left, W, t)
-    left.set_ylabel("Wiener Process $W$")
-    left.set_xlabel("Continuous Time $t$")
 
     key = jax.random.PRNGKey(seed)
 
     key, observations, hist_mean_over_log_sigma, hist_sigma_over_log_sigma = estimate(
-        key, W, t, learning_rate=learning_rate
+        key,
+        W,
+        t,
+        init_mu_over_log_sigma=log_sigma[0],
+        init_log_sigma_over_log_sigma=0.0,
+        learning_rate=learning_rate,
     )
+
+    # hist_mean_over_log_sigma = hist_mean_over_log_sigma - 0.5
 
     data = np.concatenate([observations, sigma])
 
     ma, mi = data.max(), data.min()
-    print(ma, mi)
 
     # no deltas yet at t = 0
 
-    center.plot(sigma, label="sigma")
+    center.plot(
+        sigma,
+        label="$\sigma$",
+        color="k",
+        linewidth=2,
+        linestyle="--",
+    )
     center.scatter(
         t[1:], observations, s=40, color="white", edgecolors="black", alpha=0.9
     )
@@ -275,21 +299,38 @@ def main():
     hist_mean_over_sigma, hist_sigma_over_sigma = mean_var_galton(
         hist_mean_over_log_sigma, hist_sigma_over_log_sigma
     )
-    center.plot(t, exp(hist_mean_over_sigma), label="Mean")
-    center.plot(t, exp(hist_mean_over_sigma + hist_sigma_over_sigma), label="upper")
-    center.plot(t, exp(hist_mean_over_sigma - hist_sigma_over_sigma), label="lower")
-    left.set_ylabel("Wiener Process $W$")
-    left.set_xlabel("Continuous Time $t$")
 
-    center.legend()
+    center.legend(loc="upper right", fontsize=20)
 
-    right.plot(log(sigma), label="sigma")
-    right.plot(t, hist_mean_over_log_sigma, label="mean")
-    right.plot(t, (hist_mean_over_log_sigma + hist_sigma_over_log_sigma), label="upper")
-    right.plot(t, (hist_mean_over_log_sigma - hist_sigma_over_log_sigma), label="lower")
-    right.legend()
+    right.plot(
+        log(sigma),
+        label=r"$\log \sigma$",
+        color="k",
+        linewidth=2,
+        linestyle="--",
+    )
 
-    plt.show()
+    right.fill_between(
+        t,
+        (hist_mean_over_log_sigma - hist_sigma_over_log_sigma),
+        y2=(hist_mean_over_log_sigma + hist_sigma_over_log_sigma),
+        alpha=0.5,
+        color="k",
+        linewidth=0,
+    )
+
+    right.plot(
+        t,
+        hist_mean_over_log_sigma,
+        color="k",
+        linewidth=2,
+        label=r"${\rm E}[\log(\Sigma)]}$",
+    )
+    right.legend(loc="upper right", fontsize=20)
+
+    figl.savefig("left_wiener.pdf")
+    figc.savefig("center_wiener.pdf")
+    figr.savefig("right_wiener.pdf")
 
 
 if __name__ == "__main__":
