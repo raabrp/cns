@@ -7,37 +7,53 @@ from tqdm import tqdm
 
 from cns import vectorized_loss, init_params, update_params
 from cns import sample_from_gaussian, measure_loss
-from viz import render_loss_function, render_pdf, render_samples
+from viz import (
+    render_loss_function,
+    render_loss_function_3d,
+    render_pdf,
+    render_samples,
+)
 from viz import Video
 
 
 def main():
     title = "proof_of_concept"
-    seed = 0
 
+    # environment
     N_iters = 100
-    save_frames = [0, 20, 50]
     num_samples = 40
     learning_rate = 0.001
     noise = 0
 
-    # image
+    # distribution parameters
+    # set to None for random, (goverened by seed)
+    params = np.array([-1.5, -1.5, 1.0, 0.0, 1.0])
+    seed = 0
+    key, params = init_params(seed, params=params)
+
+    # image parameters
+    save_frames = [0, 20, 50]
     center = (0, 0)
     width = 12
     height = 12
+    res = 1024
 
-    params = np.array([-1.5, -1.5, 1.0, 0.0, 1.0])  # set to None for random
-
-    key, params = init_params(seed, params=params)
+    # image of loss function in 3d
+    ax = plt.axes(projection="3d")
+    render_loss_function_3d(
+        ax, vectorized_loss, center=center, width=width, height=height, res=res
+    )
+    plt.savefig(f"{title}_loss_3d.pdf")
 
     # video fig
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
+    # left, right subplot axes
     left, right = axs
 
     # setup left plot with loss function as background
     img, contour = render_loss_function(
-        left, vectorized_loss, center=center, width=width, height=height, res=1024
+        left, vectorized_loss, center=center, width=width, height=height, res=res
     )
     min_loss, max_loss = img.get_array().min(), img.get_array().max()
     norm = plt.Normalize(min_loss, max_loss)

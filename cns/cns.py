@@ -248,6 +248,7 @@ def log_density(params, sample):
     return log(gaussian_pdf_single(params, sample))
 
 
+# get grad of parameters for each parameter component, vectorized over samples
 grad_log_density_per_sample = jax.vmap(jax.grad(log_density), in_axes=(None, 0))
 
 

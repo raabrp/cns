@@ -63,21 +63,21 @@ cycler==0.11.0 ; python_version >= "3.11" and python_version < "3.12" \
 fonttools==4.38.0 ; python_version >= "3.11" and python_version < "3.12" \
     --hash=sha256:2bb244009f9bf3fa100fc3ead6aeb99febe5985fa20afbfbaa2f8946c2fbdaf1 \
     --hash=sha256:820466f43c8be8c3009aef8b87e785014133508f0de64ec469e4efb643ae54fb
-jax==0.4.2 ; python_version >= "3.11" and python_version < "3.12" \
-    --hash=sha256:d561d431f1662a3888eae73818a53c280fba405c13442a32ac8238dc7e5dcca4
-jaxlib==0.4.2 ; python_version >= "3.11" and python_version < "3.12" \
-    --hash=sha256:3076428735b6494c27e1022d9880d6df0842ae74f65d1f3cad868464e73cd8f0 \
-    --hash=sha256:361aebe5b5817637164f66c5e626ca7da337c9855905dd61345a0b3751bd2709 \
-    --hash=sha256:3f20630c74a56b0feff148dcd36241a754b23a42a439ccca677bb96e8c2a7474 \
-    --hash=sha256:5aef0a828f8cd58d1f77d9f6bbfb888538b2fb7e0357b909f6858b298b409265 \
-    --hash=sha256:63cb14fc6e311b3b67314d1404bb228e96bdb0ee328179c99244fb7e8a75f70b \
-    --hash=sha256:6b5e56346c89e0239abe85b6cd4d6780001d4b896a1304a0ab4ba12f0ccd9121 \
-    --hash=sha256:8de6d5a7deb7fde0703c8861789a14a1ed6da49073187c4162703d24f67b1650 \
-    --hash=sha256:a78ceb252b28bb015380eabb2dd38e2cbf7cbe9bef24638494b64ce8186b9f61 \
-    --hash=sha256:beabf17667b973460b735d9ee561c1bb50549038be528672c822e331f41a1071 \
-    --hash=sha256:dad0c0f387f053c937d60b60d2cc642204007ebf5f81eadb67231f4910e951a2 \
-    --hash=sha256:e991a8659a10fd868d64adb475dd221627c0732f4104dc3fdd00be9bf4b904f2 \
-    --hash=sha256:fe54adb9b7c3315724d5ad8eaa1639d0589957f3611ec562fe3090cd4f13906b
+jax==0.4.3 ; python_version >= "3.11" and python_version < "3.12" \
+    --hash=sha256:d43f08f940aa30eb339965cfb3d6bee2296537b0dc2f0c65ccae3009279529ae
+jaxlib==0.4.3 ; python_version >= "3.11" and python_version < "3.12" \
+    --hash=sha256:0c78c3b24a84e177a8a9ac668d5fc991f23f0a7406dcd3e262b6a29a7c907855 \
+    --hash=sha256:2a284b9b7972b25a4bbfba674be91c295b4cacd62640d956045383d7b40525ba \
+    --hash=sha256:2ab6546ad6fd2b3a4720ba0b03e355e59840a61e0852991ea78bb6ab7e9dc60e \
+    --hash=sha256:2f00f05970c62fea2054ce081d0d14c4d2d40655c9c58bc4b7967fe6888d2143 \
+    --hash=sha256:512b31532cdec88bf04721bff66ad8639a8d95a462284cb9af2e7a9b7a9d37ed \
+    --hash=sha256:71a77f3fa7922a5e87c24596abc246e1af85c77eee20b67c161d9d85b3e22944 \
+    --hash=sha256:8e8765fe1a5284b072fab8d10018c88449c6922a4752a91c9211b2fe4c95151a \
+    --hash=sha256:9aa4e89c6d8f1415af70d5f02dfb40e6895337896680b900b801ed648151ac4b \
+    --hash=sha256:ae631f788c060e0c765c01176c210723fcb9b6824b2a189bfd13c2152c228c1d \
+    --hash=sha256:af2cd5613feb1fb4b8895483f0d3140378803f591d79ac6db7718b7b21664baf \
+    --hash=sha256:ca5532c2865f10f782a5d106d355a40fd80a1a509d0400a5886f83254003fb14 \
+    --hash=sha256:f17b53736aca7c31a5eedd4cdad64be92c8b774c943a516d72296d6e2a3dc6c2
 kiwisolver==1.4.4 ; python_version >= "3.11" and python_version < "3.12" \
     --hash=sha256:02f79693ec433cb4b5f51694e8477ae83b3205768a6fb48ffba60549080e295b \
     --hash=sha256:03baab2d6b4a54ddbb43bba1a3a2d1627e82d205c5cf8f4c924dc49284b87166 \
@@ -326,9 +326,9 @@ scipy==1.10.0 ; python_version >= "3.11" and python_version < "3.12" \
 setuptools-scm==7.1.0 ; python_version >= "3.11" and python_version < "3.12" \
     --hash=sha256:6c508345a771aad7d56ebff0e70628bf2b0ec7573762be9960214730de278f27 \
     --hash=sha256:73988b6d848709e2af142aa48c986ea29592bbcfca5375678064708205253d8e
-setuptools==67.1.0 ; python_version >= "3.11" and python_version < "3.12" \
-    --hash=sha256:a7687c12b444eaac951ea87a9627c4f904ac757e7abdc5aac32833234af90378 \
-    --hash=sha256:e261cdf010c11a41cb5cb5f1bf3338a7433832029f559a6a7614bd42a967c300
+setuptools==67.2.0 ; python_version >= "3.11" and python_version < "3.12" \
+    --hash=sha256:16ccf598aab3b506593c17378473978908a2734d7336755a8769b480906bec1c \
+    --hash=sha256:b440ee5f7e607bb8c9de15259dba2583dd41a38879a7abc1d43a71c59524da48
 six==1.16.0 ; python_version >= "3.11" and python_version < "3.12" \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254

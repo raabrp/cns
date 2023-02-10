@@ -2,11 +2,12 @@
 
 import numpy as np
 
+# from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import patches
 
-from cns import mean_from_params, cov_from_params
+from cns import mean_from_params, cov_from_params, loss_function
 
 
 class Video:
@@ -93,8 +94,29 @@ def render_loss_function(ax, func, center=(0, 0), width=4, height=4, res=512):
     return img, contour
 
 
+def render_loss_function_3d(ax, func, center=(0, 0), width=4, height=4, res=512):
+    left = center[0] - width / 2
+    right = center[0] + width / 2
+    bottom = center[1] - width / 2
+    top = center[1] + width / 2
+    X = np.linspace(left, right, res)
+    Y = np.linspace(bottom, top, res)
+    xx, yy = np.meshgrid(X, Y)
+    z = np.array(list(zip(xx.flatten(), yy.flatten())))
+    f = func(z)
+    zz = f.reshape((res, res))
+
+    img3d = ax.plot_surface(xx, yy, zz, cmap="bone")
+    img = ax.contourf(xx, yy, zz, cmap="bone", zdir="z", offset=0)
+    contour = ax.contour(xx, yy, zz, alpha=0.2, colors=["w"], zdir="z", offset=0)
+
+    ax.view_init(elev=12, azim=30)
+
+    return img3d, img, contour
+
+
 def render_pdf(ax, params, res=30):
-    # render pdf on ax
+    # render probability density function on ax
     mean = mean_from_params(params)
     cov = cov_from_params(params)
 
@@ -127,21 +149,6 @@ def render_pdf(ax, params, res=30):
 
     return e1, e2
 
-    # unit_eig = eig_vec / norm(eig_vec)
-    # s = std_val[0] * unit_eig[0]
-    # ss = np.array([2.0 * s + mean, 1.0 * s + mean])
-    # bnd = np.max(std_val) * 2
-
-    # X = np.linspace(-bnd, bnd, res) + mean[0]
-    # Y = np.linspace(-bnd, bnd, res) + mean[1]
-    # xx, yy = np.meshgrid(X, Y)
-    # z = np.array(list(zip(xx.flatten(), yy.flatten())))
-    # pdf = gaussian_pdf(params, z)
-    # zz = pdf.reshape((res, res))
-
-    # levels = gaussian_pdf(params, ss)
-    # ax.contour(xx, yy, zz, levels=levels)
-
 
 def render_samples(ax, samples):
     # render samples on ax
@@ -151,3 +158,15 @@ def render_samples(ax, samples):
     scatter = ax.scatter(x, y, s=40, color="white", edgecolors="black", alpha=0.9)
 
     return scatter
+
+
+def render_heterogeneous_time_series(ax, W, t):
+    path = ax.plot(t, W, color="k", alpha=0.5)
+    scatter = ax.scatter(t, W, s=40, color="white", edgecolors="black", alpha=0.9)
+
+    ma, mi = W.max(), W.min()
+
+    for tt in t:
+        ax.plot([tt, tt], [ma, mi], color="k", alpha=0.1)
+
+    return path, scatter
