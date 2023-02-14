@@ -251,11 +251,11 @@ def main():
     time_window = 1024
     obs_prob = 0.5
 
-    # figl, left = plt.subplots(1, 1, figsize=(6, 6))
-    # figc, center = plt.subplots(1, 1, figsize=(6, 6))
-    # figr, right = plt.subplots(1, 1, figsize=(6, 6))
-    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
-    left, center, right = axs
+    figl, left = plt.subplots(1, 1, figsize=(6, 6))
+    figc, center = plt.subplots(1, 1, figsize=(6, 6))
+    figr, right = plt.subplots(1, 1, figsize=(6, 6))
+    # fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+    # left, center, right = axs
 
     # LEFT PLOT IS FOR W SPACE
     # CENTER PLOT IS FOR DELTA W / sqrt(DELTA T) SPACE
@@ -353,10 +353,10 @@ def main():
     )
     right.legend(loc="upper right", fontsize=20)
 
-    # figl.savefig("left_wiener.pdf")
-    # figc.savefig("center_wiener.pdf")
-    # figr.savefig("right_wiener.pdf")
-    plt.show()
+    figl.savefig("left_wiener.pdf")
+    figc.savefig("center_wiener.pdf")
+    figr.savefig("right_wiener.pdf")
+    # plt.show()
 
 
 if __name__ == "__main__":
