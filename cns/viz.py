@@ -158,15 +158,3 @@ def render_samples(ax, samples):
     scatter = ax.scatter(x, y, s=40, color="white", edgecolors="black", alpha=0.9)
 
     return scatter
-
-
-def render_heterogeneous_time_series(ax, W, t):
-    path = ax.plot(t, W, color="k", alpha=0.5)
-    scatter = ax.scatter(t, W, s=40, color="white", edgecolors="black", alpha=0.9)
-
-    ma, mi = W.max(), W.min()
-
-    for tt in t:
-        ax.plot([tt, tt], [ma, mi], color="k", alpha=0.1)
-
-    return path, scatter

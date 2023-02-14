@@ -2,11 +2,10 @@
 
 import jax
 from jax import numpy as np
-from jax.numpy import pi, sqrt, exp, log, cos, einsum
+from jax.numpy import pi, sqrt, exp, log, sin, einsum
 
 from tqdm import tqdm
 
-from viz import render_heterogeneous_time_series
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -24,12 +23,12 @@ mpl.rcParams.update(
 )
 
 
-def walk_brownian(var, seed=0, p=0.3):
+def walk_brownian(key, var, p=0.3):
     """
     Generate Brownian motion sampled at heterogeneously spaced times.
     Args:
-        seed: random seed (int)
-        var: time-varying variance of random walk (n values)
+        key: jax pseudo-random number generator key
+        var: time-varying variance of random walk (n values) (for unit time interval).
         p: uniform probability that W(t) is observed for each t
 
     Returns:
@@ -37,14 +36,18 @@ def walk_brownian(var, seed=0, p=0.3):
            so one more than lenght of var
         t: the corresponding times
     """
+
+    # n gaps between data implies we generate n+1 values,
+    # then downsample at random
     n = len(var)
 
-    key = jax.random.PRNGKey(seed)
-    key1, key2 = jax.random.split(key)
+    key, key1, key2 = jax.random.split(key, 3)
 
     dW = jax.random.normal(key1, shape=(n,)) * sqrt(var)
     W = np.cumsum(dW)
-    t = np.arange(n) + 1
+    t = np.arange(n) + 1  # t=0 starts at W=0
+
+    # whether each point (after t=0) is observed
     is_obs = np.concatenate(
         [
             jax.random.bernoulli(key2, p=p, shape=(n - 1,)),
@@ -52,9 +55,11 @@ def walk_brownian(var, seed=0, p=0.3):
         ]
     )
 
+    # return mutated key and observed W, corresponding t
     return (
+        key,
         np.concatenate([np.array([0.0]), W[is_obs]]),
-        np.concatenate([np.array([0.0]), t[is_obs]]),
+        np.concatenate([np.array([0]), t[is_obs]]),
     )
 
 
@@ -64,8 +69,8 @@ def gaussian_mu_var(params, sample):
     normal distribution wth params (mu, var)
 
     We use this function for *both*
-    + the log probabilty (sample = h) AND
-    + the log likelihood loss (sample = x)
+    + the log probabilty (sample = h | theta) AND
+    + the log likelihood loss (sample = x | h)
 
     (vectorization accomplished *after* automatic differentiation)
     """
@@ -77,35 +82,58 @@ def gaussian_mu_var(params, sample):
     return density
 
 
-def log_gaussian_density(params_h, sample_x):
-    return log(gaussian_mu_var(params_h, sample_x))
+def log_gaussian_density_mu_log_sigma(params, sample):
+    """
+    log probability of gaussian, where params encodes
+    (mu, log_sigma)
+
+    Args:
+        params_theta: (mu, log_simga)
+        sample: a float (h)
+    """
+    mu, log_sigma = params
+
+    # convert to types of parameters expected by gaissiam_mu_var
+    mu_var_params = np.array([mu, exp(log_sigma * 2)])
+
+    return log(gaussian_mu_var(mu_var_params, sample))
 
 
-def log_gaussian_density_using_log_sigma(params_theta, sample_h):
-    mu, log_sigma = params_theta
+def log_gaussian_density_zero_log_sigma(log_sigma, sample):
+    """
+    log probability of gaussian
 
-    mu_var_params = np.array([mu, exp(log_sigma)])
+    Args:
+        params: log_sigma
+        sample: a float (x)
+    """
 
-    return log(gaussian_mu_var(mu_var_params, sample_h))
+    mu = 0.0
+
+    params = np.array([mu, log_sigma])
+
+    return log_gaussian_density_mu_log_sigma(params, sample)
 
 
-# vectorize first argument (vector h) for calculating log likelihood of x
-get_log_gauss_x_param_h = jax.vmap(log_gaussian_density, in_axes=(0, None))
+# vectorize first argument (log_sigma)
+# for calculating log likelihood of fixed x in terms of vector h
+get_log_likelihood_of_vector_h_given_x = jax.vmap(
+    log_gaussian_density_zero_log_sigma, in_axes=(0, None)
+)
 
 # get grad wrt parameters (theta) over vector of samples (h)
 # first grad, then vmap
-get_grad_log_gauss_h_param_theta = jax.vmap(
-    jax.grad(log_gaussian_density_using_log_sigma), in_axes=(None, 0)
+get_theta_grads_log_p_vector_h = jax.vmap(
+    jax.grad(log_gaussian_density_mu_log_sigma), in_axes=(None, 0)
 )
 
 
 @jax.jit
-def update_params(key, theta, x, learning_rate):
+def update_theta(key, theta, x, learning_rate):
     """
+    Learn a gaussian distribution parameterized by theta = [mu, log_sigma]
 
-    Lean a gaussian distribution parameterized by theta = [mu, log_sigma]
-
-    for h, where h is sigma for another guassian with zero mean
+    for h, where h is log_sigma for another guassian with zero mean
     from which x is ostensibly sampled
     """
 
@@ -120,42 +148,28 @@ def update_params(key, theta, x, learning_rate):
     theta_mu, theta_log_sigma = theta
 
     # sample hypotheses h from gaussian parameterized by theta
-    h_as_sample = (
+    vector_h = (
         jax.random.normal(subkey, shape=(num_h_samples,)) * exp(theta_log_sigma)
         + theta_mu
     )
 
     # gradient in theta of log probability associated with sampling this h
-    grad_log_gauss_h_param_theta = get_grad_log_gauss_h_param_theta(theta, h_as_sample)
-
-    # H SPACE IS LOG_SIGMA_OF_GAUSS_OF_X SPACE
-
-    # unpack h as [0, sigma^2] to parameterize Gaussian
-    h_as_gauss_params = np.hstack(
-        [
-            np.zeros((num_h_samples, 1)),  # mu_model
-            exp(h_as_sample * 2).reshape(  # H = LOG SIGMA, GAUSS_PARAMETERIZED_WITH_VAR
-                num_h_samples, 1
-            ),
-        ]
-    )
+    # is vector corresponding to h
+    theta_grads = get_theta_grads_log_p_vector_h(theta, vector_h)
 
     # get loss = -log p(x | h) for h, clipped
-    h_log_loss_for_x = np.clip(
-        -get_log_gauss_x_param_h(h_as_gauss_params, x),
+    # is vector corresponding to h
+    log_loss_for_h_given_x = np.clip(
+        -get_log_likelihood_of_vector_h_given_x(vector_h, x),
         -100.0,
         100.0,
     )
 
-    # gradient in theta
-    gradient_estimate_theta = einsum(
-        "i,ij->j", h_log_loss_for_x, grad_log_gauss_h_param_theta
-    )
+    # gradient estimate in theta for Monte Carlo h samples
+    gradient_estimate_theta = einsum("ij,i->j", theta_grads, log_loss_for_h_given_x)
 
     # of gauss distribution parameterized by [mu, log_sigma]
-    inv_fisher = np.array(
-        [[exp(theta_log_sigma * 2), 0.0], [0.0, exp(theta_log_sigma) / 2]]
-    )
+    inv_fisher = np.array([[exp(theta_log_sigma * 2), 0.0], [0.0, 0.5]])
 
     covariant_derivative = einsum("ij,j->i", inv_fisher, gradient_estimate_theta)
 
@@ -196,12 +210,9 @@ def estimate(
     # empirical sample, distributed like N(0, sigma^2)
     x = dW / sqrt(dt)
 
-    # params represent theta:
-    # mean of gaussian over log_sigma
-    # log_std of gaussian over log_sigma
-    params = np.array([init_mu_over_log_sigma, init_log_sigma_over_log_sigma])
+    theta = np.array([init_mu_over_log_sigma, init_log_sigma_over_log_sigma])
 
-    mean_over_log_sigma, sigma_over_log_sigma = params[0], exp(params[1])
+    mean_over_log_sigma, sigma_over_log_sigma = theta[0], exp(theta[1])
 
     # store history
     hist_mean_over_log_sigma = []
@@ -211,17 +222,17 @@ def estimate(
     hist_sigma_over_log_sigma.append(sigma_over_log_sigma)
 
     # iterate over observations x in the data
-    for i in tqdm(range(len(x))):
-        key, params = update_params(key, params, x[i], learning_rate)
+    for xx in tqdm(x):
+        key, theta = update_theta(key, theta, xx, learning_rate)
 
-        mean_over_log_sigma, sigma_over_log_sigma = params[0], exp(params[1])
+        mean_over_log_sigma, sigma_over_log_sigma = theta[0], exp(theta[1])
 
         hist_mean_over_log_sigma.append(mean_over_log_sigma)
         hist_sigma_over_log_sigma.append(sigma_over_log_sigma)
 
     return (
         key,
-        x,  # n - 1, where n is length of W, t
+        x,  # n - 1, where n is length of W, t (which include (0, 0))
         np.array(hist_mean_over_log_sigma),  # n
         np.array(hist_sigma_over_log_sigma),  # n
     )
@@ -240,9 +251,11 @@ def main():
     time_window = 1024
     obs_prob = 0.5
 
-    figl, left = plt.subplots(1, 1, figsize=(6, 6))
-    figc, center = plt.subplots(1, 1, figsize=(6, 6))
-    figr, right = plt.subplots(1, 1, figsize=(6, 6))
+    # figl, left = plt.subplots(1, 1, figsize=(6, 6))
+    # figc, center = plt.subplots(1, 1, figsize=(6, 6))
+    # figr, right = plt.subplots(1, 1, figsize=(6, 6))
+    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+    left, center, right = axs
 
     # LEFT PLOT IS FOR W SPACE
     # CENTER PLOT IS FOR DELTA W / sqrt(DELTA T) SPACE
@@ -250,25 +263,32 @@ def main():
 
     # the real value for the target parameter (std) in time
     # generate variance as function of time
-    log_sigma = cos(np.arange(time_window - 1) / (time_window - 1) * pi) ** 2
+    log_sigma = sin(np.arange(time_window - 1) / (time_window - 1) * 4 * pi) * 0.5 + 0.5
     sigma = exp(log_sigma)
     var = sigma**2
 
-    learning_rate = 0.001
+    learning_rate = 0.01
+
+    key = jax.random.PRNGKey(seed)
 
     # target is std of brownian motion
     # use variance
-    W, t = walk_brownian(var, seed=seed, p=obs_prob)
-    render_heterogeneous_time_series(left, W, t)
+    key, W, t = walk_brownian(key, var, p=obs_prob)
 
-    key = jax.random.PRNGKey(seed)
+    left.plot(t, W, color="k", alpha=0.5)
+    left.scatter(t, W, s=40, color="white", edgecolors="black", alpha=0.9)
+
+    ma, mi = W.max(), W.min()
+
+    for tt in t:
+        left.plot([tt, tt], [ma, mi], color="k", alpha=0.1)
 
     key, observations, hist_mean_over_log_sigma, hist_sigma_over_log_sigma = estimate(
         key,
         W,
         t,
-        init_mu_over_log_sigma=log_sigma[0],
-        init_log_sigma_over_log_sigma=0.0,
+        init_mu_over_log_sigma=0.5,
+        init_log_sigma_over_log_sigma=-1.0,
         learning_rate=learning_rate,
     )
 
@@ -278,21 +298,29 @@ def main():
 
     # no deltas yet at t = 0
 
-    center.plot(
-        sigma,
-        label="$\sigma$",
-        color="k",
-        linewidth=2,
-        linestyle="--",
-    )
     center.scatter(
         t[1:], observations, s=40, color="white", edgecolors="black", alpha=0.9
     )
     for tt in t[1:]:
         center.plot([tt, tt], [ma, mi], color="k", alpha=0.1)
 
+    center.plot(
+        sigma,
+        label=r"$\pm\sigma$",
+        color="k",
+        linewidth=2,
+        linestyle="--",
+    )
+    center.plot(
+        -sigma,
+        color="k",
+        linewidth=2,
+        linestyle="--",
+    )
+
     # start with a prior at t = 0.
 
+    # TODO check
     hist_mean_over_sigma, hist_sigma_over_sigma = mean_var_galton(
         hist_mean_over_log_sigma, hist_sigma_over_log_sigma
     )
@@ -300,7 +328,7 @@ def main():
     center.legend(loc="upper right", fontsize=20)
 
     right.plot(
-        log(sigma),
+        log_sigma,
         label=r"$\log \sigma$",
         color="k",
         linewidth=2,
@@ -325,9 +353,10 @@ def main():
     )
     right.legend(loc="upper right", fontsize=20)
 
-    figl.savefig("left_wiener.pdf")
-    figc.savefig("center_wiener.pdf")
-    figr.savefig("right_wiener.pdf")
+    # figl.savefig("left_wiener.pdf")
+    # figc.savefig("center_wiener.pdf")
+    # figr.savefig("right_wiener.pdf")
+    plt.show()
 
 
 if __name__ == "__main__":
