@@ -3,8 +3,8 @@
 This code contains examples for natural gradient descent in a parameter space of
 Gaussian distributions over $\mathbb{R}^2$. 
 
-It accompanies a paper by the same name submitted to
-[COLT](https://www.learningtheory.org/colt2023/).
+It accompanies a paper by the same name
+[paper](https://arxiv.org/abs/2208.13898v4) submitted to arXiv.
 
 Hypothesis class:
 $$x \sim \pi(x)$$
